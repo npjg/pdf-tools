@@ -730,7 +730,7 @@ next page only on typing SPC (ARG is nil)."
           (when (/= cur-page (pdf-view-current-page))
             (image-bob)
             (image-bol 1))
-          (set-window-hscroll (selected-window) hscroll)))
+          (image-set-window-hscroll hscroll)))
     (image-scroll-up arg)))
 
 (defun pdf-view-scroll-down-or-previous-page (&optional arg)
@@ -752,7 +752,7 @@ to previous page only on typing DEL (ARG is nil)."
           (when (/= cur-page (pdf-view-current-page))
             (image-eob)
             (image-bol 1))
-          (set-window-hscroll (selected-window) hscroll)))
+          (image-set-window-hscroll hscroll)))
     (image-scroll-down arg)))
 
 (defun pdf-view-next-line-or-next-page (&optional arg)
@@ -770,7 +770,7 @@ at the bottom edge of the page moves to the next page."
           (when (/= cur-page (pdf-view-current-page))
             (image-bob)
             (image-bol 1))
-          (set-window-hscroll (selected-window) hscroll)))
+          (image-set-window-hscroll hscroll)))
     (image-next-line 1)))
 
 (defun pdf-view-previous-line-or-previous-page (&optional arg)
@@ -788,7 +788,7 @@ at the top edge of the page moves to the previous page."
           (when (/= cur-page (pdf-view-current-page))
             (image-eob)
             (image-bol 1))
-          (set-window-hscroll (selected-window) hscroll)))
+          (image-set-window-hscroll hscroll)))
     (image-previous-line arg)))
 
 (defun pdf-view-goto-label (label)
@@ -1220,21 +1220,20 @@ The colors are determined by the variable
   (pdf-cache-clear-images)
   (pdf-view-redisplay t))
 
-(defun pdf-view-refresh-all-themed-buffers (&optional theme)
+(defun pdf-view-refresh-all-themed-buffers (&optional _)
   "Ensure all PDFView buffers use the new theme for their
-background and background colors.
-
-THEME is unused; it is simply present to not break :after advice
-that invokes it."
+background and background colors."
   (mapc (lambda (buffer)
           (with-current-buffer buffer
-            (when pdf-view-themed-minor-mode
+            (when (eq major-mode 'pdf-view-mode)
+              (when pdf-view-themed-minor-mode
+                (pdf-view-set-theme-background))
               (pdf-cache-clear-images)
-              (pdf-view-set-theme-background)
               (pdf-view-redisplay t))))
         (buffer-list)) nil)
 
 (defun pdf-view-set-theme-background ()
+  "Ser foreground and background accourding to default font."
   (pdf-tools-assert-pdf-buffer)
   (pdf-info-setoptions
    :render/foreground (face-foreground 'default nil)
